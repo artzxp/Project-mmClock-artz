@@ -9,9 +9,9 @@
 
 /* WiFi network defines  */
 // Your WiFi SSID name
-#define WIFI_SSID	"Your WIFFY SSID";
+#define WIFI_SSID	"";
 // Your WiFi SSID password
-#define WIFI_PASSWD	"Your WIFFY passowrd";
+#define WIFI_PASSWD	"";
 // Your clock hostname
 #define WIFI_HOSTNAME	"Clock";
 
@@ -23,13 +23,13 @@
 
 /* NTP defines  */
 // NTP server to use
-#define NTP_SERVER	10,0,0,12
+#define NTP_SERVER	162,159,200,1
 // NTP port to listen on
 #define NTP_PORT	123
 // Time between NTP sync fetches
 #define NTP_SYNC	60
 // Default timezone to use
-#define TIMEZONE	10	// Straya
+#define TIMEZONE	-4	// 
 //#define TIMEZONE	-5;	// Eastern Standard Time (USA)
 //#define TIMEZONE	-4;	// Eastern Daylight Time (USA)
 //#define TIMEZONE	-8;	// Pacific Standard Time (USA)
@@ -37,22 +37,22 @@
 
 
 /* MP3 player GPIO pins */
-#define SERIAL2_RXPIN	16
-#define SERIAL2_TXPIN	17
+#define SERIAL2_RXPIN	D3
+#define SERIAL2_TXPIN	D2
 #define BUSY_PIN	4
 
 
 /* Buttons & LDR GPIO pins */
-#define BUTTON1 D2
-#define BUTTON2 D3
-#define BUTTON3 D4
+#define BUTTON1 19
+#define BUTTON2 21
+#define BUTTON3 22
 #define LDR A0
 
 
 /* FireBeetle 24x8 LED hat GPIO pins */
 #if defined( ESP_PLATFORM ) || defined( ARDUINO_ARCH_FIREBEETLE8266 )  //FireBeetle-ESP32 FireBeetle-ESP8266
-#define FBD_DATA D6
-#define FBD_CS D5
+#define FBD_DATA D8
+#define FBD_CS D9
 #define FBD_WR D7
 //#define FBD_RD D8
 #else

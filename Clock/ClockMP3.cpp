@@ -8,8 +8,8 @@
 #include "ClockMP3defs.h"
 
 DFRobotDFPlayerMini myDFPlayer;
-HardwareSerial Serial1(1);
-HardwareSerial Serial2(2);
+HardwareSerial MySerial1(1);
+HardwareSerial MySerial2(2);
 //void printDetail(uint8_t type, int value);
 
 
@@ -17,15 +17,17 @@ bool WaitForIt()
 {
 	int Response = 0;
 
+  //MP3_PRINT(digitalRead(BUSY_PIN));
+
 	//while(!(myDFPlayer.available() || digitalRead(BUSY_PIN)))
 	while(!myDFPlayer.available())
 	{
-		// MP3_PRINT(digitalRead(BUSY_PIN));
-		// myDFPlayer.readState();
-		// Response = myDFPlayer.read();
-		// MP3_PRINT(" R:"); MP3_PRINT(Response);
-		// MP3_PRINT("Z");
-		delay(20);
+		//MP3_PRINT(digitalRead(BUSY_PIN));
+		//  myDFPlayer.readState();
+		//  Response = myDFPlayer.read();
+		//  MP3_PRINT(" R:"); MP3_PRINT(Response);
+		//  MP3_PRINT("Z");
+		// delay(20);
 	}
 	// MP3_PRINTLN("");
 
@@ -55,14 +57,14 @@ bool WaitForIt()
 
 bool PlayTrack(int Track)
 {
-	/*
-	MP3_PRINT("Wait:");
-	while(!digitalRead(BUSY_PIN))
-	{
-		MP3_PRINT(".");
-	}
-	MP3_PRINTLN("");
-	*/
+	
+	// MP3_PRINT("Wait:");
+	// while(!digitalRead(BUSY_PIN))
+	// {
+	// 	MP3_PRINT(".");
+	// }
+	// MP3_PRINTLN("");
+	
 
 	MP3_PRINT("MP3:Track:");
 	MP3_PRINTLN(Track);
@@ -70,64 +72,113 @@ bool PlayTrack(int Track)
 	return(WaitForIt());
 }
 
+bool PlayTrackAndWait(int Track)
+{
+    MP3_PRINT("Playing track: ");
+    MP3_PRINTLN(Track);
+    
+    myDFPlayer.playMp3Folder(Track);
+    
+    // Wait for the BUSY_PIN to go LOW (active) 
+    while (digitalRead(BUSY_PIN) == HIGH)
+    {
+        delay(10);
+    }
+    
+    MP3_PRINTLN("Track started playing");
+    
+    // Wait for the BUSY_PIN to go HIGH (inactive) - indicating track has finished
+    while (digitalRead(BUSY_PIN) == LOW)
+    {
+        delay(10);
+    }
+    
+    MP3_PRINTLN("Track finished playing");
+    
+    return true;
+}
+
 
 bool SayTime(int hour, int minute, int second, bool Set24H)
 {
-	PlayTrack(vfTheTimeIs);
+	PlayTrackAndWait(vfTheTimeIs);
 
-	if (Set24H)
-	{
-		for(int index = 0; Hour24[hour][index]; index++)
-			PlayTrack(Hour24[hour][index]);
-		if (minute)
-			for(int index = 0; Numbers[minute][index]; index++)
-				PlayTrack(Numbers[minute][index]);
-		else
-			PlayTrack(vfHundred);
-	}
+    if (Set24H)
+    {
+        for(int index = 0; Hour24[hour][index]; index++)
+            PlayTrackAndWait(Hour24[hour][index]);
+        if (minute == 0)
+            PlayTrackAndWait(vfHundred);
+        else if (minute < 10)
+        {
+            PlayTrackAndWait(vfOh);  // Play "oh" for single digit minutes in 24-hour format
+            for(int index = 0; Numbers[minute][index]; index++)
+                PlayTrackAndWait(Numbers[minute][index]);
+        }
+        else
+        {
+            for(int index = 0; Numbers[minute][index]; index++)
+                PlayTrackAndWait(Numbers[minute][index]);
+        }
+    }
 	else
 	{
 		for(int index = 0; Hour[hour][index]; index++)
-			PlayTrack(Hour[hour][index]);
-		if (minute)
-			for(int index = 0; Numbers[minute][index]; index++)
-				PlayTrack(Numbers[minute][index]);
-		if (hour > 12)
-			PlayTrack(vfPM);
-		else
-			PlayTrack(vfAM);
+			PlayTrackAndWait(Hour[hour][index]);
+        if (minute == 0)
+            PlayTrackAndWait(vfOclock);
+        else if (minute < 10)
+        {
+            PlayTrackAndWait(vfOh);  // Play "oh" for single digit minutes
+            for(int index = 0; Numbers[minute][index]; index++)
+                PlayTrackAndWait(Numbers[minute][index]);
+        }
+        else
+        {
+            for(int index = 0; Numbers[minute][index]; index++)
+                PlayTrackAndWait(Numbers[minute][index]);
+        }
+    if (hour >= 12 && hour < 24) {
+        PlayTrackAndWait(vfPM);
+    } else if (hour >= 0 && hour < 12) {
+        PlayTrackAndWait(vfAM);
+    }
 	}
+
+  return true;
 }
 
 
 bool SayDate(int year, int month, int day)
 {
-	PlayTrack(vfTheDateIs);
+	PlayTrackAndWait(vfTheDateIs);
 
 	for(int index = 0; Month[month][index]; index++)
-		PlayTrack(Month[month][index]);
+		PlayTrackAndWait(Month[month][index]);
 
 	for(int index = 0; Numbers[day][index]; index++)
-		PlayTrack(Numbers[day][index]);
+		PlayTrackAndWait(Numbers[day][index]);
 
 	// Hackety hack - good for another 83 years!
-	PlayTrack(vfTwo);
-	PlayTrack(vfThousand);
-	PlayTrack(vfAnd);
+	PlayTrackAndWait(vfTwo);
+	PlayTrackAndWait(vfThousand);
+	PlayTrackAndWait(vfAnd);
 
 	for(int index = 0; Numbers[year-2000][index]; index++)
-		PlayTrack(Numbers[year-2000][index]);
+		PlayTrackAndWait(Numbers[year-2000][index]);
+
+  return true;
 }
 
 
-bool Play(int folder, int file)
+void Play(int folder, int file)
 {
 	MP3_PRINT("MP3:Track:");
 	MP3_PRINT(folder);
 	MP3_PRINT(":");
 	MP3_PRINTLN(file);
 	myDFPlayer.playFolder(folder, file);
-	// return(myDFPlayer.playFolder(folder, file));
+	//return(myDFPlayer.playFolder(folder, file));
 }
 
 
@@ -136,7 +187,7 @@ void SetupMP3()
 	pinMode(BUSY_PIN, INPUT);
  
 	MP3_PRINT(F("MP3:Init"));
-	Serial2.begin(9600, SERIAL_8N1, SERIAL2_RXPIN, SERIAL2_TXPIN);
+	Serial2.begin(9600, SERIAL_8N1, SERIAL2_TXPIN, SERIAL2_RXPIN);
 	while (!Serial2)
 		MP3_PRINT(".");
 	MP3_PRINT("OK ");
@@ -150,17 +201,21 @@ void SetupMP3()
 			delay(500);
 		}
 	}
-	MP3_PRINT(F("OK "));
+	MP3_PRINTLN("OK 2");
 	MP3_PRINTLN(myDFPlayer.readState());
   
 	MP3_PRINTLN("MP3:Config");
-	myDFPlayer.setTimeOut(500); //Set serial communictaion time out 500ms
+	//myDFPlayer.setTimeOut(500); //Set serial communictaion time out 500ms
   
+  //MP3_PRINTLN("MP3:Timeout Set");
+
 	//----Set volume----
 	myDFPlayer.volume(30);  //Set volume value (0~30).
 	myDFPlayer.outputSetting(true, 31);
 	//myDFPlayer.volumeUp(); //Volume Up
 	//myDFPlayer.volumeDown(); //Volume Down
+
+  MP3_PRINTLN("MP3:Volume Set");
   
 	//----Set different EQ----
 	myDFPlayer.EQ(DFPLAYER_EQ_NORMAL);
@@ -169,6 +224,8 @@ void SetupMP3()
 	//  myDFPlayer.EQ(DFPLAYER_EQ_JAZZ);
 	//  myDFPlayer.EQ(DFPLAYER_EQ_CLASSIC);
 	//  myDFPlayer.EQ(DFPLAYER_EQ_BASS);
+
+  MP3_PRINTLN("MP3:EQ Set");
   
 	//----Set device we use SD as default----
 	//  myDFPlayer.outputDevice(DFPLAYER_DEVICE_U_DISK);
@@ -176,6 +233,8 @@ void SetupMP3()
 	//  myDFPlayer.outputDevice(DFPLAYER_DEVICE_AUX);
 	//  myDFPlayer.outputDevice(DFPLAYER_DEVICE_SLEEP);
 	//  myDFPlayer.outputDevice(DFPLAYER_DEVICE_FLASH);
+
+  MP3_PRINTLN("MP3:Output device set");
   
 	//----Mp3 control----
 	//  myDFPlayer.sleep();     //sleep
