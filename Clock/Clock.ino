@@ -684,14 +684,23 @@ void handleAlarm(void)
 {
     CLK_PRINTLN("Alarm check:");
 
+    // Get current time
+    char currentTime[9];  // HH:MM:SS\0
+    mmStrftime(currentTime, sizeof(currentTime), "%H:%M:%S");
+
+    int currentHour, currentMinute;
+    sscanf(currentTime, "%d:%d", &currentHour, &currentMinute);
+
+    // Check for top of the hour
+    if (currentMinute == 0)
+    {
+        // Play MP3
+        Play(1,3);
+    }
+
+    // Regular alarm check
     if (alarmEnabled)
     {
-        char currentTime[9];  // HH:MM:SS\0
-        mmStrftime(currentTime, sizeof(currentTime), "%H:%M:%S");
-
-        int currentHour, currentMinute;
-        sscanf(currentTime, "%d:%d", &currentHour, &currentMinute);
-
         // Convert alarm hour to 24-hour format if it's PM
         int alarmHour24 = alarmHour;
         if (alarmIsPM && alarmHour != 12) {
@@ -901,3 +910,5 @@ void loop()
 	}
 */
 }
+
+
