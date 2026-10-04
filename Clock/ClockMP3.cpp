@@ -20,8 +20,15 @@ bool WaitForIt()
   //MP3_PRINT(digitalRead(BUSY_PIN));
 
 	//while(!(myDFPlayer.available() || digitalRead(BUSY_PIN)))
+	unsigned long waitStart = millis();
 	while(!myDFPlayer.available())
 	{
+		delay(1);
+		if (millis() - waitStart > 5000)
+		{
+			MP3_PRINTLN("MP3:WaitForIt timeout");
+			return(1);
+		}
 		//MP3_PRINT(digitalRead(BUSY_PIN));
 		//  myDFPlayer.readState();
 		//  Response = myDFPlayer.read();
@@ -79,17 +86,29 @@ bool PlayTrackAndWait(int Track)
     
     myDFPlayer.playMp3Folder(Track);
     
-    // Wait for the BUSY_PIN to go LOW (active) 
+    // Wait for the BUSY_PIN to go LOW (active)
+    unsigned long startWait = millis();
     while (digitalRead(BUSY_PIN) == HIGH)
     {
+        if (millis() - startWait > 3000)
+        {
+            MP3_PRINTLN("MP3:track never started - giving up");
+            return false;
+        }
         delay(10);
     }
     
     MP3_PRINTLN("Track started playing");
     
     // Wait for the BUSY_PIN to go HIGH (inactive) - indicating track has finished
+    startWait = millis();
     while (digitalRead(BUSY_PIN) == LOW)
     {
+        if (millis() - startWait > 60000)
+        {
+            MP3_PRINTLN("MP3:track never finished - giving up");
+            return false;
+        }
         delay(10);
     }
     
@@ -177,6 +196,9 @@ void Play(int folder, int file)
 	MP3_PRINT(folder);
 	MP3_PRINT(":");
 	MP3_PRINTLN(file);
+	// Drain unread replies (ACK / "play finished") so _isAvailable and
+	// _isSending cannot latch and stall the next command.
+	while (myDFPlayer.available()) { myDFPlayer.readType(); myDFPlayer.read(); }
 	myDFPlayer.playFolder(folder, file);
 	//return(myDFPlayer.playFolder(folder, file));
 }

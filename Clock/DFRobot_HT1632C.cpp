@@ -1,3 +1,4 @@
+#define HT_DELAY_US 4   // HT1632C needs ~us-scale timing; the stock driver had none
 /*!
  * @file DFRobot_HT1632.cpp
  * @brief DFRobot's DFRobot_HT1632C
@@ -199,7 +200,7 @@ void DFRobot_HT1632C::begin(){
   pinMode(wr_t, OUTPUT); 
   pinMode(data_t, OUTPUT);
 	
-	digitalWrite(cs_t, HIGH);
+	delayMicroseconds(HT_DELAY_US); digitalWrite(cs_t, HIGH);
 	digitalWrite(wr_t, HIGH);
 	
 	writeCommand(DFROBOT_HT1632_SYS_EN);
@@ -225,22 +226,20 @@ void DFRobot_HT1632C::writeCommand(uint8_t cmd){
 	str |= cmd;
 	str <<= 1;
 	
-	digitalWrite(cs_t, LOW);
+	digitalWrite(cs_t, LOW); delayMicroseconds(HT_DELAY_US);
 	writeBits(str, 12);
-	digitalWrite(cs_t, HIGH);
+	delayMicroseconds(HT_DELAY_US); digitalWrite(cs_t, HIGH);
 }
 
 void DFRobot_HT1632C::writeBits(uint16_t data, uint8_t length){
 	pinMode(data_t, OUTPUT);
 	
-	for(uint8_t i=length; i>0; i--){  
+	for(uint8_t i=length; i>0; i--){
 		digitalWrite(wr_t, LOW);
-		if(data & _BV(i-1)){		
-			digitalWrite(data_t, HIGH);
-		}else{
-			digitalWrite(data_t, LOW);
-		}
-		digitalWrite(wr_t, HIGH);
+		digitalWrite(data_t, (data & _BV(i-1)) ? HIGH : LOW);
+		delayMicroseconds(HT_DELAY_US);   // data setup time before WR rising edge
+		digitalWrite(wr_t, HIGH);         // HT1632C latches DATA here
+		delayMicroseconds(HT_DELAY_US);   // WR high time
 	}
 	
 	pinMode(data_t, INPUT);
@@ -253,14 +252,14 @@ void DFRobot_HT1632C::writeRAM(uint8_t addr, uint8_t data){
 	str <<= 4;
 	str |= data & 0xf;
 	
-	digitalWrite(cs_t, LOW);
+	digitalWrite(cs_t, LOW); delayMicroseconds(HT_DELAY_US);
 	writeBits(str, 14);
-	digitalWrite(cs_t, HIGH);
+	delayMicroseconds(HT_DELAY_US); digitalWrite(cs_t, HIGH);
 }
 
 
 void DFRobot_HT1632C::writeScreen(){
-	digitalWrite(cs_t, LOW);
+	digitalWrite(cs_t, LOW); delayMicroseconds(HT_DELAY_US);
 	writeBits(DFROBOT_HT1632_WRITE,3);	
 	writeBits(0, 7);									
 	for(uint8_t i=0; i<24; i++){	
@@ -268,7 +267,7 @@ void DFRobot_HT1632C::writeScreen(){
 		str <<= 8;  
 		writeBits(str, 16);
 	}
-	digitalWrite(cs_t, HIGH);
+	delayMicroseconds(HT_DELAY_US); digitalWrite(cs_t, HIGH);
 }
 
 void DFRobot_HT1632C::fillScreen(){

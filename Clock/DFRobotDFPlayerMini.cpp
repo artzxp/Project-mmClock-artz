@@ -32,9 +32,17 @@ uint16_t DFRobotDFPlayerMini::calculateCheckSum(uint8_t *buffer){
 
 void DFRobotDFPlayerMini::sendStack(){
   if (_sending[Stack_ACK]) {  //if the ack mode is on wait until the last transmition
+    unsigned long ackWaitStart = millis();
     while (_isSending) {
-      delay(0);
+      delay(1);
       waitAvailable();
+      // A stale _isAvailable makes waitAvailable() return true immediately
+      // without ever reaching its own timeout, which spun here forever and
+      // wedged the whole cooperative loop. Hard escape.
+      if (millis() - ackWaitStart > (_timeOutDuration * 2)) {
+        _isSending = false;
+        break;
+      }
     }
   }
 

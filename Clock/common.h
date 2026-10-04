@@ -29,7 +29,7 @@
 // Time between NTP sync fetches
 #define NTP_SYNC	60
 // Default timezone to use
-#define TIMEZONE	-4	// 
+#define TIMEZONE	-5	// Standard-time offset; getDSTOffset() adds the summer hour
 //#define TIMEZONE	-5;	// Eastern Standard Time (USA)
 //#define TIMEZONE	-4;	// Eastern Daylight Time (USA)
 //#define TIMEZONE	-8;	// Pacific Standard Time (USA)
@@ -37,8 +37,8 @@
 
 
 /* MP3 player GPIO pins */
-#define SERIAL2_RXPIN	D3
-#define SERIAL2_TXPIN	D2
+#define SERIAL2_RXPIN	D4	// MP3 module RX  <- ESP32 transmits here
+#define SERIAL2_TXPIN	D3	// MP3 module TX  -> ESP32 listens here
 #define BUSY_PIN	4
 
 
@@ -52,7 +52,7 @@
 /* FireBeetle 24x8 LED hat GPIO pins */
 #if defined( ESP_PLATFORM ) || defined( ARDUINO_ARCH_FIREBEETLE8266 )  //FireBeetle-ESP32 FireBeetle-ESP8266
 #define FBD_DATA D8
-#define FBD_CS D9
+#define FBD_CS D2
 #define FBD_WR D7
 //#define FBD_RD D8
 #else

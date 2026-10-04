@@ -271,12 +271,16 @@ void connectWiFi()
   
   //WiFi.begin(ssid, password);
 
-  // Wait for connection
+  // Wait for connection. Bounded: this thread re-runs every 10s, so there is
+  // no reason to sit here. Blocking forever froze the display, buttons and web
+  // server for the entire duration of any Wi-Fi outage.
+  unsigned long wifiWaitStart = millis();
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     WIFI_PRINT(".");
     WIFI_PRINTLN("WiFi:Connecting.");
-    //Serial.print(".");
+    if (millis() - wifiWaitStart > 5000)
+      break;
   }
 
 	// int Count = 10;
@@ -639,6 +643,18 @@ void handleHTML()
 }
 
 
+// The HT1632C enable commands are otherwise only sent once, in setup(). If that
+// first exchange is missed, the panel stays dark until the next reboot even
+// though UpdateDisplay() keeps drawing into it. Re-send them periodically.
+void refreshDisplayHW()
+{
+	ht1632c.inLowpower(0);		// SYS_EN
+	if (ModeBRG)
+		ht1632c.isLedOn(true);	// brightness 0 means "off" (see handleSubmit)
+	ht1632c.setPwm(ModeBRG);
+}
+
+
 void handleNTP()
 {
 	if (timeStatus() == timeNotSet)
@@ -649,6 +665,8 @@ void handleNTP()
 	}
 	else
 		Status = stateOK;
+
+	refreshDisplayHW();
 }
 
 

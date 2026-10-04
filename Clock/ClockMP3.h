@@ -8,5 +8,5 @@ bool SayDate(int year, int month, int day);
 bool PlayTrack(int Track);
 void SetupMP3();
 void printDetail(uint8_t type, int value);
-bool Play(int folder, int file);
+void Play(int folder, int file);
 
